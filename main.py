@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+import random
 
 pygame.init()
 clock = pygame.time.Clock() # allows to control game framerate
@@ -54,6 +55,18 @@ class Bird(pygame.sprite.Sprite):
             self.flap = True
             self.velocity = -7
 
+class Pipe(pygame.sprite.Sprite):
+    def __init__(self, x, y, image):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y
+
+    def update(self): # animates the pipe motion
+        self.rect.x -= scrollSpeed
+        if self.rect.x <= -windowWidth:
+            self.kill()
+
 class Ground(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -78,6 +91,10 @@ def main():
     ground = pygame.sprite.Group()
     ground.add(Ground(groundPosition_X, groundPosition_Y))
 
+    # instantiate pipes
+    pipeTimer = 0
+    pipes = pygame.sprite.Group()
+    
     #instantiate bird
     bird = pygame.sprite.GroupSingle()
     bird.add(Bird())
@@ -93,12 +110,24 @@ def main():
             ground.add(Ground(windowWidth, groundPosition_Y))
 
         # draw objects
+        pipes.draw(window)
         ground.draw(window)
         bird.draw(window)
 
         # update objects
+        pipes.update()
         ground.update()
         bird.update(userInput)
+
+        # spawn pipes
+        if pipeTimer <= 0:
+            PipesPosition_X = 550
+            TopPipesPosition_Y = random.randint(-600, -480)
+            BottomPipesPosition_Y = TopPipesPosition_Y + random.randint(90, 130) + bottomPipeImage.get_height()
+            pipes.add(Pipe(PipesPosition_X, TopPipesPosition_Y, topPipeImage))
+            pipes.add(Pipe(PipesPosition_X, BottomPipesPosition_Y, bottomPipeImage))
+            pipeTimer = random.randint(180, 250)
+        pipeTimer -= 1
 
         clock.tick(60) # limits game framerate to 60
         pygame.display.update()
